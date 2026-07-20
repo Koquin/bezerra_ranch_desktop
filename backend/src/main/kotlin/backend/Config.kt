@@ -6,7 +6,9 @@ object Config {
     private val env by lazy { loadEnvFile(File(".env")) }
 
     val supabaseUrl: String? = env["SUPABASE_URL"]
-    val supabaseKey: String? = env["SUPABASE_KEY"]
+    val supabaseKey: String? = env["SUPABASE_ANON_KEY"] ?: env["SUPABASE_KEY"]
+    /** Nome da tabela exposta pela API REST do Supabase. */
+    val supabaseAnimalTable: String = env["SUPABASE_ANIMAL_TABLE"] ?: "animal"
 
     private fun loadEnvFile(file: File): Map<String, String> {
         if (!file.exists()) return emptyMap()
