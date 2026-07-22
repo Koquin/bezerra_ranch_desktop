@@ -39,7 +39,21 @@ class SQLiteDatabase(databaseFile: File = defaultDatabaseFile()) {
     }
 
     companion object {
-        private fun defaultDatabaseFile(): File = File("data/bezerra-ranch.db")
+        private fun defaultDatabaseFile(): File {
+            val explicitPath = System.getenv("BEZERRA_DB_PATH")?.trim().orEmpty()
+            if (explicitPath.isNotEmpty()) {
+                return File(explicitPath).absoluteFile
+            }
+
+            // Prefer an existing database regardless of whether the app starts from root or frontend module.
+            val candidates = listOf(
+                File("data/bezerra-ranch.db").absoluteFile,
+                File("../data/bezerra-ranch.db").absoluteFile,
+                File("../../data/bezerra-ranch.db").absoluteFile
+            )
+
+            return candidates.firstOrNull(File::exists) ?: candidates.first()
+        }
 
         private val TABLES = listOf(
             """CREATE TABLE IF NOT EXISTS animal (
