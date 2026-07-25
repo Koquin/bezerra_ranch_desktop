@@ -9,6 +9,7 @@
 /frontend/out
 /backend/.gradle
 /backend/build
+/backend/src/main/resources/supabase.properties
 /assets/*
 !/assets/*.png
 !/assets/*.ico

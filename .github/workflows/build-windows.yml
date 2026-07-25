@@ -21,6 +21,27 @@ jobs:
           java-version: "17"
           cache: gradle
 
+      - name: Criar configuração do Supabase
+        shell: pwsh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:SUPABASE_URL)) {
+            throw "O secret SUPABASE_URL não foi configurado no repositório."
+          }
+          if ([string]::IsNullOrWhiteSpace($env:SUPABASE_ANON_KEY)) {
+            throw "O secret SUPABASE_ANON_KEY não foi configurado no repositório."
+          }
+
+          New-Item -ItemType Directory -Force backend/src/main/resources | Out-Null
+
+          @"
+          SUPABASE_URL=$env:SUPABASE_URL
+          SUPABASE_ANON_KEY=$env:SUPABASE_ANON_KEY
+          SUPABASE_ANIMAL_TABLE=animal
+          "@ | Set-Content backend/src/main/resources/supabase.properties -Encoding utf8
+
       - name: Gerar instalador EXE
         run: .\gradlew.bat :frontend:packageExe
 
