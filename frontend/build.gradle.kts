@@ -27,9 +27,24 @@ compose.desktop {
     application {
         mainClass = "MainKt"
         nativeDistributions {
-            targetFormats(org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
+            targetFormats(
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Exe,
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi,
-                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb)
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb
+            )
+            packageName = "BezerraRanch"
+            packageVersion = "1.0.0"
+            description = "Painel de gestão do rebanho Bezerra Ranch"
+            vendor = "Bezerra Ranch"
+
+            windows {
+                iconFile.set(project.file("../assets/BRC_logo.ico"))
+                menuGroup = "Bezerra Ranch"
+                shortcut = true
+                dirChooser = true
+                perUserInstall = true
+            }
         }
     }
 }

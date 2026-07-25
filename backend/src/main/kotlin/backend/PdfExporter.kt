@@ -9,6 +9,7 @@ import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.File
+import javax.imageio.ImageIO
 
 data class PdfFarmSummary(val farm: String, val males: Int, val females: Int, val total: Int)
 data class PdfAgeSummary(val farm: String, val males: List<Int>, val females: List<Int>)
@@ -62,12 +63,13 @@ object PdfExporter {
             val columnWidth = (page.mediaBox.width - 60f - gap * 2) / 3f
             sections.forEachIndexed { index, section ->
                 val x = 30f + index * (columnWidth + gap)
-                drawHerdSection(stream, section, x, 525f, columnWidth, 475f)
+                drawHerdSection(document, stream, section, x, 525f, columnWidth, 475f)
             }
         }
     }
 
     private fun drawHerdSection(
+        document: PDDocument,
         stream: PDPageContentStream,
         section: PdfHerdSection,
         x: Float,
@@ -79,12 +81,15 @@ object PdfExporter {
         val total = section.farms.sumOf { it.total }
         val males = section.farms.sumOf { it.males }
         val females = section.farms.sumOf { it.females }
-        text(stream, section.title, x + 10f, top - 22f, 12f, bold = true)
-        text(stream, "Total: $total", x + 10f, top - 42f, 11f, bold = true, color = Color(63, 73, 250))
+        drawOptionalImage(document, stream, "assets/grafico.png", x + 9f, top - 49f, 34f, 34f)
+        text(stream, section.title, x + 50f, top - 22f, 12f, bold = true)
+        text(stream, "Total: $total", x + 50f, top - 42f, 11f, bold = true, color = Color(63, 73, 250))
         val malePercent = if (total == 0) 0 else (males * 100.0 / total).toInt()
         val femalePercent = if (total == 0) 0 else (females * 100.0 / total).toInt()
-        text(stream, "Machos: $malePercent% ($males)", x + 10f, top - 62f, 9f)
-        text(stream, "Fêmeas: $femalePercent% ($females)", x + width / 2f, top - 62f, 9f)
+        drawOptionalImage(document, stream, "assets/rebanho_machos.png", x + 10f, top - 72f, 13f, 13f)
+        text(stream, "Machos: $malePercent% ($males)", x + 27f, top - 68f, 8f)
+        drawOptionalImage(document, stream, "assets/rebanho_femeas.png", x + width / 2f, top - 72f, 13f, 13f)
+        text(stream, "Fêmeas: $femalePercent% ($females)", x + width / 2f + 17f, top - 68f, 8f)
         text(stream, section.title.lowercase().replaceFirstChar { it.uppercase() }, x + 10f, top - 88f, 10f, bold = true)
 
         val farms = section.farms.filter { it.total > 0 }.sortedBy { it.total }
@@ -240,6 +245,23 @@ object PdfExporter {
         stream.setStrokingColor(color)
         stream.addRect(x, y, width, height)
         stream.stroke()
+    }
+
+    private fun drawOptionalImage(
+        document: PDDocument,
+        stream: PDPageContentStream,
+        path: String,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float
+    ) {
+        runCatching {
+            val imageFile = File(path).takeIf { it.isFile } ?: return
+            val bufferedImage = ImageIO.read(imageFile) ?: return
+            val image = LosslessFactory.createFromImage(document, bufferedImage)
+            stream.drawImage(image, x, y, width, height)
+        }
     }
 
     private fun truncate(value: String, maximum: Int): String =

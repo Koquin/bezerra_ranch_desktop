@@ -42,6 +42,9 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import javax.swing.JFileChooser
+import javax.swing.JOptionPane
+import javax.swing.filechooser.FileNameExtensionFilter
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -97,6 +100,7 @@ fun App() {
         }
     }
     val navItems = listOf(
+        "GRÁFICOS",
         "NASCIMENTOS",
         "COMPRAS",
         "VENDAS",
@@ -129,8 +133,15 @@ fun App() {
                         NavSquareButton(name = name, hovered = hovered, onHover = { hovered = it }) {
                             debugLog("App.navigationClick", "entrada; nome=$name")
                             try {
-                                // placeholder navigation
-                                throw NotImplementedError("Tela ainda em construção")
+                                if (name == "GRÁFICOS") {
+                                    debugLog("App.navigationClick", "retorno=Unit; tela de gráficos já está ativa")
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("Você já está na tela de gráficos")
+                                    }
+                                } else {
+                                    // placeholder navigation
+                                    throw NotImplementedError("Tela ainda em construção")
+                                }
                             } catch (e: Throwable) {
                                 debugLog("App.navigationClick", "erro; nome=$name; mensagem=${e.message}")
                                 coroutineScope.launch {
@@ -206,11 +217,14 @@ fun App() {
                     ) { Text(if (isDownloading) "Baixando..." else "Baixar dados") }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(onClick = {
-                        debugLog("App.exportarPdfClick", "entrada; gerando relatório diretamente dos dados")
-                        coroutineScope.launch {
-                            try {
-                                val ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
-                                val outFile = File("export_report_$ts.pdf")
+                        debugLog("App.exportarPdfClick", "entrada; escolhendo destino do relatório")
+                        val ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                        val outFile = choosePdfDestination("export_report_$ts.pdf")
+                        if (outFile == null) {
+                            debugLog("App.exportarPdfClick", "retorno=Unit; seleção cancelada")
+                        } else {
+                            coroutineScope.launch {
+                                try {
                                 val report = PdfDashboardReport(
                                     totalHerd = PdfHerdSection("REBANHO TOTAL", animalRows.toPdfFarmRows(false)),
                                     poHerd = PdfHerdSection("REBANHO P.O.", poAnimalRows.toPdfFarmRows(false)),
@@ -230,9 +244,10 @@ fun App() {
                                 }
                                 snackbarHostState.showSnackbar("Exportado para ${outFile.absolutePath}")
                                 debugLog("App.exportarPdfClick", "retorno=Unit; arquivo=${outFile.absolutePath}")
-                            } catch (e: Throwable) {
-                                debugLog("App.exportarPdfClick", "erro; mensagem=${e.message}")
-                                snackbarHostState.showSnackbar("Erro ao exportar: ${e.message}")
+                                } catch (e: Throwable) {
+                                    debugLog("App.exportarPdfClick", "erro; mensagem=${e.message}")
+                                    snackbarHostState.showSnackbar("Erro ao exportar: ${e.message}")
+                                }
                             }
                         }
                     }) {
@@ -268,27 +283,18 @@ fun App() {
                                 rows = animalRows,
                                 title = "REBANHO TOTAL",
                                 chartTitle = "Rebanho total",
-                                mainImagePath = "assets/rebanho_total.png",
-                                maleImagePath = "assets/rebanho_machos.png",
-                                femaleImagePath = "assets/rebanho_femeas.png",
                                 modifier = Modifier.fillMaxSize().padding(16.dp)
                             )
                             2 -> HerdCard(
                                 rows = poAnimalRows,
                                 title = "REBANHO P.O.",
                                 chartTitle = "Rebanho P.O.",
-                                mainImagePath = "assets/rebanho_po.png",
-                                maleImagePath = "assets/rebanho_po_machos.png",
-                                femaleImagePath = "assets/rebanho_po_femeas.png",
                                 modifier = Modifier.fillMaxSize().padding(16.dp)
                             )
                             else -> HerdCard(
                                 rows = commercialAnimalRows,
                                 title = "REBANHO COMERCIAL",
                                 chartTitle = "Rebanho comercial",
-                                mainImagePath = "assets/rebanho_comercial.png",
-                                maleImagePath = "assets/rebanho_comercial_machos.png",
-                                femaleImagePath = "assets/rebanho_comercial_femeas.png",
                                 modifier = Modifier.fillMaxSize().padding(16.dp)
                             )
                         }
@@ -398,6 +404,7 @@ fun NavSquareButton(name: String, hovered: String, onHover: (String) -> Unit, on
     debugLog("NavSquareButton", "entrada; name=$name; hovered=$hovered")
     val size = 56.dp
     val assets = mapOf(
+        "GRÁFICOS" to "assets/tela_graficos.png",
         "NASCIMENTOS" to "assets/nascimentos.png",
         "COMPRAS" to "assets/compras.png",
         "VENDAS" to "assets/vendas.png",
@@ -494,9 +501,6 @@ private fun HerdCard(
     rows: List<AnimalSummaryRow>,
     title: String,
     chartTitle: String,
-    mainImagePath: String,
-    maleImagePath: String,
-    femaleImagePath: String,
     modifier: Modifier = Modifier
 ) {
     val totals = rows.lastOrNull { it.fazenda == "Total" }
@@ -508,16 +512,21 @@ private fun HerdCard(
     val totalFemales = totals?.femeas ?: 0
 
     Column(modifier = modifier) {
-        Row(modifier = Modifier.fillMaxWidth().height(76.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier.fillMaxWidth().height(76.dp)
+        ) {
             DashboardImage(
-                path = mainImagePath,
+                path = "assets/grafico.png",
                 description = title,
-                modifier = Modifier.size(60.dp)
+                modifier = Modifier.size(60.dp).align(Alignment.CenterStart)
             )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = title,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                     style = MaterialTheme.typography.subtitle1
                 )
@@ -535,17 +544,19 @@ private fun HerdCard(
         Row(modifier = Modifier.fillMaxWidth().height(76.dp)) {
             HerdSexSummary(
                 label = "Machos",
-                imagePath = maleImagePath,
+                imagePath = "assets/rebanho_machos.png",
                 amount = totalMales,
                 total = totalAnimals,
+                backgroundColor = Color(0xFFDDEAF6),
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(12.dp))
             HerdSexSummary(
                 label = "Fêmeas",
-                imagePath = femaleImagePath,
+                imagePath = "assets/rebanho_femeas.png",
                 amount = totalFemales,
                 total = totalAnimals,
+                backgroundColor = Color(0xFFFECCFF),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -575,12 +586,14 @@ private fun HerdSexSummary(
     imagePath: String,
     amount: Int,
     total: Int,
+    backgroundColor: Color,
     modifier: Modifier = Modifier
 ) {
     val percentage = if (total == 0) 0 else (amount * 100.0 / total).roundToInt()
     Column(
         modifier = modifier
             .fillMaxHeight()
+            .background(backgroundColor, RoundedCornerShape(6.dp))
             .border(1.dp, Color(0xFFD0D0D0), RoundedCornerShape(6.dp))
             .padding(6.dp)
     ) {
@@ -609,7 +622,6 @@ private fun DashboardImage(path: String, description: String, modifier: Modifier
     }
     Box(
         modifier = modifier
-            .border(1.dp, Color(0xFFD0D0D0), RoundedCornerShape(4.dp))
             .padding(3.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -1105,6 +1117,35 @@ fun main() = application {
         App()
     }
     debugLog("main", "retorno=Unit; application encerrada")
+}
+
+private fun choosePdfDestination(suggestedName: String): File? {
+    val parent = java.awt.Window.getWindows().firstOrNull { it.isVisible }
+    val chooser = JFileChooser().apply {
+        dialogTitle = "Salvar relatório em PDF"
+        fileFilter = FileNameExtensionFilter("Documento PDF (*.pdf)", "pdf")
+        selectedFile = File(suggestedName)
+    }
+    if (chooser.showSaveDialog(parent) != JFileChooser.APPROVE_OPTION) return null
+
+    val selected = chooser.selectedFile
+    val destination = if (selected.extension.equals("pdf", ignoreCase = true)) {
+        selected
+    } else {
+        File(selected.parentFile, "${selected.name}.pdf")
+    }
+
+    if (destination.exists()) {
+        val answer = JOptionPane.showConfirmDialog(
+            parent,
+            "O arquivo ${destination.name} já existe. Deseja substituí-lo?",
+            "Confirmar substituição",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        )
+        if (answer != JOptionPane.YES_OPTION) return null
+    }
+    return destination
 }
 
 /** Logger de desenvolvimento: usa stdout para aparecer no terminal do Gradle/IDE. */
