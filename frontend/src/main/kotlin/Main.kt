@@ -655,13 +655,15 @@ private fun loadAssetBitmap(path: String): ImageBitmap? = runCatching {
 private fun HorizontalHerdBar(farm: AnimalSummaryRow, largestHerd: Int) {
     val fraction = if (largestHerd == 0) 0f else farm.total.toFloat() / largestHerd
     Row(
-        modifier = Modifier.fillMaxWidth().height(25.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 32.dp)
+            .padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = farm.fazenda,
-            modifier = Modifier.width(100.dp).padding(end = 6.dp),
-            maxLines = 1,
+            modifier = Modifier.width(280.dp).padding(end = 10.dp),
             style = MaterialTheme.typography.caption
         )
         Box(
