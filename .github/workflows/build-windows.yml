@@ -1,0 +1,32 @@
+name: Gerar instalador Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Gerar instalador EXE
+        run: .\gradlew.bat :frontend:packageExe
+
+      - name: Disponibilizar instalador
+        uses: actions/upload-artifact@v4
+        with:
+          name: BezerraRanch-Windows
+          path: frontend/build/compose/binaries/main/exe/*.exe
+          if-no-files-found: error

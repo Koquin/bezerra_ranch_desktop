@@ -416,25 +416,7 @@ fun NavSquareButton(name: String, hovered: String, onHover: (String) -> Unit, on
 
     val imgBitmap = remember(name) {
         debugLog("NavSquareButton.imageLoader", "entrada; name=$name; caminho=${assets[name]}")
-        try {
-            val p = assets[name]
-            if (p != null) {
-                val f = java.io.File(p)
-                if (f.exists()) {
-                    debugLog("NavSquareButton.imageLoader", "retorno=ImageBitmap; arquivo=${f.path}")
-                    loadImageBitmap(f.inputStream())
-                } else {
-                    debugLog("NavSquareButton.imageLoader", "retorno=null; arquivo ausente=${f.path}")
-                    null
-                }
-            } else {
-                debugLog("NavSquareButton.imageLoader", "retorno=null; não há caminho de ícone para name=$name")
-                null
-            }
-        } catch (e: Throwable) {
-            debugLog("NavSquareButton.imageLoader", "retorno=null; erro=${e.message}")
-            null
-        }
+        assets[name]?.let(::loadAssetBitmap)
     }
 
     Surface(modifier = Modifier.size(size).border(1.dp, Color.DarkGray), color = Color(0xFFEFEFEF)) {
@@ -615,11 +597,7 @@ private fun HerdSexSummary(
 
 @Composable
 private fun DashboardImage(path: String, description: String, modifier: Modifier = Modifier) {
-    val bitmap = remember(path) {
-        runCatching {
-            File(path).takeIf(File::exists)?.inputStream()?.use(::loadImageBitmap)
-        }.getOrNull()
-    }
+    val bitmap = remember(path) { loadAssetBitmap(path) }
     Box(
         modifier = modifier
             .padding(3.dp),
@@ -632,6 +610,18 @@ private fun DashboardImage(path: String, description: String, modifier: Modifier
         }
     }
 }
+
+private fun loadAssetBitmap(path: String): ImageBitmap? = runCatching {
+    val localFile = File(path)
+    val input = if (localFile.isFile) {
+        localFile.inputStream()
+    } else {
+        Thread.currentThread().contextClassLoader
+            .getResourceAsStream(path.removePrefix("assets/"))
+            ?: return null
+    }
+    input.use(::loadImageBitmap)
+}.getOrNull()
 
 @Composable
 private fun HorizontalHerdBar(farm: AnimalSummaryRow, largestHerd: Int) {

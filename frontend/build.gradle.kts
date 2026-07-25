@@ -23,6 +23,13 @@ kotlin {
     jvmToolchain(17)
 }
 
+sourceSets {
+    main {
+        resources.srcDir(rootProject.file("assets"))
+        resources.include("*.png", "*.ico", "*.txt")
+    }
+}
+
 compose.desktop {
     application {
         mainClass = "MainKt"

@@ -1,0 +1,49 @@
+IMAGENS DOS GRÁFICOS DE REBANHO
+
+Os três gráficos — Rebanho Total, Rebanho P.O. e Rebanho Comercial — usam os mesmos ícones.
+
+Coloque os arquivos PNG nesta pasta (assets) usando exatamente estes nomes:
+
+- grafico.png
+  Imagem exibida à esquerda dos títulos Rebanho Total, Rebanho P.O. e Rebanho Comercial.
+  O mesmo arquivo é usado nos três gráficos.
+
+- rebanho_machos.png
+  Ícone pequeno exibido nos quadros com a porcentagem e a quantidade de machos.
+
+- rebanho_femeas.png
+  Ícone pequeno exibido nos quadros com a porcentagem e a quantidade de fêmeas.
+
+Enquanto um desses arquivos não existir, o programa exibirá automaticamente um ícone padrão.
+
+
+IMAGENS DOS BOTÕES DE NAVEGAÇÃO
+
+Os ícones abaixo são exibidos nos botões localizados na parte superior da tela.
+Coloque os arquivos PNG nesta pasta (assets) usando exatamente estes nomes:
+
+- tela_graficos.png
+  Botão que abre a tela principal de gráficos e relatórios.
+
+- nascimentos.png
+  Botão que abrirá a tela de Nascimentos.
+
+- compras.png
+  Botão que abrirá a tela de Compras.
+
+- vendas.png
+  Botão que abrirá a tela de Vendas.
+
+- mortes.png
+  Botão que abrirá a tela de Mortes.
+
+- abates.png
+  Botão que abrirá a tela de Abates.
+
+- transferencias.png
+  Botão que abrirá a tela de Transferências.
+
+- pesagem.png
+  Botão que abrirá a tela de Pesagem.
+
+Enquanto uma dessas imagens não existir, o respectivo botão exibirá automaticamente um ícone padrão.

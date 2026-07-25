@@ -257,8 +257,15 @@ object PdfExporter {
         height: Float
     ) {
         runCatching {
-            val imageFile = File(path).takeIf { it.isFile } ?: return
-            val bufferedImage = ImageIO.read(imageFile) ?: return
+            val imageFile = File(path)
+            val input = if (imageFile.isFile) {
+                imageFile.inputStream()
+            } else {
+                Thread.currentThread().contextClassLoader
+                    .getResourceAsStream(path.removePrefix("assets/"))
+                    ?: return
+            }
+            val bufferedImage = input.use(ImageIO::read) ?: return
             val image = LosslessFactory.createFromImage(document, bufferedImage)
             stream.drawImage(image, x, y, width, height)
         }

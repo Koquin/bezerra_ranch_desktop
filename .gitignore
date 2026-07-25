@@ -9,7 +9,10 @@
 /frontend/out
 /backend/.gradle
 /backend/build
-/assets/
+/assets/*
+!/assets/*.png
+!/assets/*.ico
+!/assets/*.txt
 .DS_Store
 /.gradle
 /.idea
