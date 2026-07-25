@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -18,8 +19,15 @@ import androidx.compose.runtime.*
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.unit.dp
@@ -54,6 +62,7 @@ fun App() {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    val appFocusRequester = remember { FocusRequester() }
     val animalController = remember { AnimalController() }
     val synchronizationController = remember { SynchronizationController() }
     var hovered by remember { mutableStateOf("") }
@@ -91,6 +100,7 @@ fun App() {
     }
 
     LaunchedEffect(Unit) {
+        appFocusRequester.requestFocus()
         debugLog("App.LaunchedEffect", "entrada; variável-chave=Unit; carregamento inicial da tabela")
         try {
             updateAnimalTable()
@@ -124,6 +134,24 @@ fun App() {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
+                .focusRequester(appFocusRequester)
+                .focusable()
+                .onPreviewKeyEvent { event ->
+                    if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    val distance = when (event.key) {
+                        Key.DirectionDown -> 120
+                        Key.DirectionUp -> -120
+                        Key.PageDown -> 480
+                        Key.PageUp -> -480
+                        else -> return@onPreviewKeyEvent false
+                    }
+                    coroutineScope.launch {
+                        scrollState.animateScrollTo(
+                            (scrollState.value + distance).coerceIn(0, scrollState.maxValue)
+                        )
+                    }
+                    true
+                }
                 .padding(8.dp)
         ) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
