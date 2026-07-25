@@ -22,7 +22,7 @@ jobs:
           cache: gradle
 
       - name: Gerar instalador EXE
-        run: .\gradlew.bat -Dorg.gradle.java.home="$env:JAVA_HOME" :frontend:packageExe
+        run: .\gradlew.bat :frontend:packageExe
 
       - name: Disponibilizar instalador
         uses: actions/upload-artifact@v4
