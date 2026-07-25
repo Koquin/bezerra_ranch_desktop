@@ -50,6 +50,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 import javax.swing.JFileChooser
 import javax.swing.JOptionPane
 import javax.swing.filechooser.FileNameExtensionFilter
@@ -506,6 +507,9 @@ private val ageRangeLabels = listOf(
     "> 72 MESES"
 )
 
+private fun Int.toChartNumber(): String =
+    String.format(Locale.forLanguageTag("pt-BR"), "%,d", this)
+
 @Composable
 private fun HerdCard(
     rows: List<AnimalSummaryRow>,
@@ -541,7 +545,7 @@ private fun HerdCard(
                     style = MaterialTheme.typography.subtitle1
                 )
                 Text(
-                    text = totalAnimals.toString(),
+                    text = totalAnimals.toChartNumber(),
                     color = Color(0xFF3F49FA),
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                     style = MaterialTheme.typography.h5
@@ -618,7 +622,7 @@ private fun HerdSexSummary(
                 color = Color(0xFF3F49FA),
                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
             )
-            Text(text = amount.toString(), fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            Text(text = amount.toChartNumber(), fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
         }
     }
 }
@@ -680,8 +684,8 @@ private fun HorizontalHerdBar(farm: AnimalSummaryRow, largestHerd: Int) {
             )
         }
         Text(
-            text = farm.total.toString(),
-            modifier = Modifier.width(48.dp).padding(start = 6.dp),
+            text = farm.total.toChartNumber(),
+            modifier = Modifier.width(60.dp).padding(start = 6.dp),
             fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
             style = MaterialTheme.typography.caption
         )
@@ -994,7 +998,7 @@ private fun ChartColumn(value: Int, largestValue: Int, color: Color, width: Int 
     val barHeight = if (largestValue == 0) 1f else 210f * value / largestValue
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
         Text(
-            text = value.toString(),
+            text = value.toChartNumber(),
             fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
             style = MaterialTheme.typography.caption
         )
