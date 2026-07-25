@@ -41,9 +41,10 @@ compose.desktop {
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb
             )
             packageName = "BezerraRanch"
-            packageVersion = "1.0.0"
+            packageVersion = "1.0.1"
             description = "Painel de gestão do rebanho Bezerra Ranch"
             vendor = "Bezerra Ranch"
+            modules("java.instrument", "java.net.http", "java.sql", "jdk.unsupported")
 
             windows {
                 iconFile.set(project.file("../assets/BRC_logo.ico"))
